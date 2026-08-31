@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Tiled matrix multiplication</title>
+  <desc id="desc">Matrix A is left of matrix C and matrix B is above C. A highlighted row of A and column of B align with one output tile of C. Matching tiles are multiplied and accumulated across K.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="7" stdDeviation="10" flood-color="#26304f" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-indigo" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#6476df"/>
+    </marker>
+    <marker id="arrow-teal" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#31929e"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .math { font-family: Georgia, "Times New Roman", serif; font-style: italic; }
+      .sub { font-size: 11px; baseline-shift: sub; }
+      .matrix-name { fill: #172033; font-size: 29px; }
+      .tile-label { font-size: 17px; font-weight: 700; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="650" rx="24" fill="#fbfcff"/>
+
+  <g class="sans">
+    <text x="600" y="45" text-anchor="middle" fill="#172033" font-size="25" font-weight="750">Tiled matrix multiplication</text>
+    <text x="600" y="73" text-anchor="middle" fill="#7a8496" font-size="14">Sum every matching K-tile product into one tile of C</text>
+
+    <!-- Compact description of the inner K-tile loop. -->
+    <rect x="88" y="133" width="530" height="166" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text x="353" y="165" text-anchor="middle" fill="#5262c2" font-size="11" font-weight="750" letter-spacing="1">SUM ALL MATCHING BLOCK PRODUCTS</text>
+    <text class="math" x="353" y="211" text-anchor="middle" fill="#8f4527" font-size="26">C<tspan class="sub">i,j</tspan> = ∑<tspan class="sub">k tiles</tspan> A<tspan class="sub">i,k</tspan> × B<tspan class="sub">k,j</tspan></text>
+    <text class="math" x="353" y="257" text-anchor="middle" fill="#5262c2" font-size="17">A<tspan class="sub">i,0</tspan>×B<tspan class="sub">0,j</tspan> + A<tspan class="sub">i,1</tspan>×B<tspan class="sub">1,j</tspan> + A<tspan class="sub">i,2</tspan>×B<tspan class="sub">2,j</tspan> + ⋯</text>
+
+    <!-- B is directly above C and shares its column boundaries. -->
+    <text class="math matrix-name" x="950" y="102" text-anchor="middle">B</text>
+    <rect x="800" y="118" width="300" height="270" rx="12" fill="#ffffff" stroke="#cfd6e5" filter="url(#shadow)"/>
+    <g stroke="#d7dce7" stroke-width="1.2">
+      <path d="M900 118V388M1000 118V388"/>
+      <path d="M800 163H1100M800 208H1100M800 253H1100M800 298H1100M800 343H1100"/>
+    </g>
+    <rect x="1003" y="121" width="94" height="84" rx="8" fill="#e7f6f7" stroke="#31929e" stroke-width="2"/>
+    <rect x="1003" y="211" width="94" height="84" rx="8" fill="#ddf2f4" stroke="#31929e" stroke-width="2"/>
+    <rect x="1003" y="301" width="94" height="84" rx="8" fill="#d4edef" stroke="#31929e" stroke-width="2"/>
+    <g class="math tile-label" fill="#277e88" text-anchor="middle">
+      <text x="1050" y="168">B<tspan class="sub">0,j</tspan></text>
+      <text x="1050" y="258">B<tspan class="sub">1,j</tspan></text>
+      <text x="1050" y="348">B<tspan class="sub">2,j</tspan></text>
+    </g>
+    <path d="M785 118H773V388H785M1115 118H1127V388H1115" fill="none" stroke="#667085" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- A is directly left of C and shares its row boundaries. -->
+    <text class="math matrix-name" x="350" y="424" text-anchor="middle">A</text>
+    <rect x="80" y="440" width="540" height="150" rx="12" fill="#ffffff" stroke="#cfd6e5" filter="url(#shadow)"/>
+    <g stroke="#d7dce7" stroke-width="1.2">
+      <path d="M170 440V590M260 440V590M350 440V590M440 440V590M530 440V590"/>
+      <path d="M80 490H620M80 540H620"/>
+    </g>
+    <rect x="83" y="543" width="174" height="44" rx="7" fill="#edf0ff" stroke="#6476df" stroke-width="2"/>
+    <rect x="263" y="543" width="174" height="44" rx="7" fill="#e7eaff" stroke="#6476df" stroke-width="2"/>
+    <rect x="443" y="543" width="174" height="44" rx="7" fill="#dfe4ff" stroke="#6476df" stroke-width="2"/>
+    <g class="math tile-label" fill="#4054be" text-anchor="middle">
+      <text x="170" y="572">A<tspan class="sub">i,0</tspan></text>
+      <text x="350" y="572">A<tspan class="sub">i,1</tspan></text>
+      <text x="530" y="572">A<tspan class="sub">i,2</tspan></text>
+    </g>
+    <path d="M65 440H53V590H65M635 440H647V590H635" fill="none" stroke="#667085" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- C occupies the bottom-right corner. -->
+    <text class="math matrix-name" x="950" y="424" text-anchor="middle">C</text>
+    <rect x="800" y="440" width="300" height="150" rx="12" fill="#ffffff" stroke="#cfd6e5" filter="url(#shadow)"/>
+    <g stroke="#d7dce7" stroke-width="1.2">
+      <path d="M900 440V590M1000 440V590"/>
+      <path d="M800 490H1100M800 540H1100"/>
+    </g>
+    <rect x="1003" y="543" width="94" height="44" rx="7" fill="#fff0e9" stroke="#d76543" stroke-width="2"/>
+    <text class="math tile-label" x="1050" y="572" text-anchor="middle" fill="#b74828">C<tspan class="sub">i,j</tspan></text>
+    <path d="M785 440H773V590H785M1115 440H1127V590H1115" fill="none" stroke="#667085" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- Minimal alignment guides. -->
+    <rect x="620" y="543" width="180" height="44" fill="#edf0ff" opacity="0.62"/>
+    <path d="M635 565H790" fill="none" stroke="#6476df" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow-indigo)"/>
+    <text x="712" y="554" text-anchor="middle" fill="#5262c2" font-size="11" font-weight="750">ROW i</text>
+
+    <rect x="1003" y="388" width="94" height="52" fill="#e7f6f7" opacity="0.7"/>
+    <path d="M1050 392V430" fill="none" stroke="#31929e" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#arrow-teal)"/>
+    <text x="1050" y="414" text-anchor="middle" fill="#277e88" font-size="11" font-weight="750">COLUMN j</text>
+
+    <text x="600" y="626" text-anchor="middle" fill="#7a8496" font-size="13">The highlighted row and column intersect at C<tspan baseline-shift="sub" font-size="10">i,j</tspan>.</text>
+  </g>
+</svg>

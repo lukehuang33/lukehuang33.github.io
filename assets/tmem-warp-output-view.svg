@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Per-warp and per-thread views of the global output tile</title>
+  <desc id="desc">A 64 by 256 CTA output tile is divided into four 64 by 64 epilogue subtiles. Each subtile is divided into four 16 by 64 warp bands. A warp band consists of two by eight blocks of 8 by 8 values. Inside each 8 by 8 block, the 32 warp lanes form an 8 by 4 arrangement, with every lane owning two adjacent output values. The same lane position repeats across all sixteen blocks in the warp band.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#26304f" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-indigo" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6476df"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .label { fill: #667085; font-size: 13px; font-weight: 560; }
+      .small { fill: #7a8496; font-size: 11px; font-weight: 540; }
+      .eyebrow { font-size: 11px; font-weight: 780; letter-spacing: 0.8px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="760" rx="24" fill="#fbfcff"/>
+
+  <g class="sans">
+    <text x="600" y="42" text-anchor="middle" fill="#172033" font-size="25" font-weight="750">From the CTA tile to each thread’s global-memory view</text>
+    <text x="600" y="69" text-anchor="middle" fill="#7a8496" font-size="14">The TMEM load layout determines exactly which output coordinates each thread stores</text>
+
+    <!-- CTA tile. -->
+    <rect x="40" y="95" width="275" height="254" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="64" y="124" fill="#5262c2">CTA VIEW</text>
+    <text x="64" y="149" fill="#172033" font-size="14" font-weight="720">C tile · 64 × 256</text>
+    <rect x="65" y="175" width="225" height="90" rx="7" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+    <rect x="65" y="175" width="56.25" height="90" rx="7" fill="#dfe4ff" stroke="#6476df" stroke-width="2.2"/>
+    <g fill="none" stroke="#cbd3e1" stroke-width="1.2">
+      <path d="M121.25 175V265M177.5 175V265M233.75 175V265"/>
+    </g>
+    <g class="code" font-size="10.5" font-weight="700" text-anchor="middle">
+      <text x="93.125" y="217" fill="#4054be">s</text>
+      <text x="93.125" y="234" fill="#5262c2">64×64</text>
+      <text x="149.375" y="225" fill="#7a8496">s+1</text>
+      <text x="205.625" y="225" fill="#7a8496">s+2</text>
+      <text x="261.875" y="225" fill="#7a8496">s+3</text>
+    </g>
+    <text class="small" x="177.5" y="286" text-anchor="middle">four epilogue iterations along N</text>
+    <rect x="67" y="303" width="221" height="27" rx="13.5" fill="#edf0ff"/>
+    <text class="code" x="177.5" y="321" text-anchor="middle" fill="#4054be" font-size="10.5" font-weight="700">flat_divide(..., 64×64)</text>
+
+    <path d="M315 220H351" fill="none" stroke="#6476df" stroke-width="2.2" marker-end="url(#arrow-indigo)"/>
+
+    <!-- Warp view inside one subtile. -->
+    <rect x="361" y="95" width="275" height="254" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="385" y="124" fill="#277e88">SUBTILE VIEW</text>
+    <text x="385" y="149" fill="#172033" font-size="14" font-weight="720">64 × 64 · four warp bands</text>
+    <rect x="408" y="167" width="181" height="150" rx="7" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+    <rect x="409" y="168" width="179" height="36.5" fill="#d4edef"/>
+    <rect x="409" y="205.5" width="179" height="36.5" fill="#edf0ff"/>
+    <rect x="409" y="243" width="179" height="36.5" fill="#f4f5ff"/>
+    <rect x="409" y="280.5" width="179" height="35.5" fill="#fff0e9"/>
+    <g fill="none" stroke="#aeb8ca" stroke-width="1.2">
+      <path d="M408 204.5H589M408 242H589M408 279.5H589"/>
+    </g>
+    <g font-size="11" font-weight="750" text-anchor="middle">
+      <text x="498.5" y="190" fill="#277e88">warp w · 16 × 64</text>
+      <text x="498.5" y="228" fill="#5262c2">warp w+1</text>
+      <text x="498.5" y="265" fill="#6476df">warp w+2</text>
+      <text x="498.5" y="302" fill="#b74828">warp w+3</text>
+    </g>
+    <text class="small" x="498.5" y="336" text-anchor="middle">warp w owns rows 16w … 16w+15</text>
+
+    <path d="M636 220H672" fill="none" stroke="#6476df" stroke-width="2.2" marker-end="url(#arrow-indigo)"/>
+
+    <!-- One warp's 16x64 band as sixteen 8x8 blocks. -->
+    <rect x="682" y="95" width="478" height="254" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="706" y="124" fill="#b74828">WARP VIEW</text>
+    <text x="706" y="149" fill="#172033" font-size="14" font-weight="720">16 × 64 = 2 × 8 blocks of 8 × 8</text>
+    <rect x="718" y="175" width="408" height="120" rx="7" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+    <g fill="#edf0ff" stroke="#c7d0e0" stroke-width="1">
+      <rect x="719" y="176" width="50" height="58"/><rect x="770" y="176" width="50" height="58"/>
+      <rect x="821" y="176" width="50" height="58"/><rect x="872" y="176" width="50" height="58"/>
+      <rect x="923" y="176" width="50" height="58"/><rect x="974" y="176" width="50" height="58"/>
+      <rect x="1025" y="176" width="50" height="58"/><rect x="1076" y="176" width="49" height="58"/>
+    </g>
+    <g fill="#e7f6f7" stroke="#c7d0e0" stroke-width="1">
+      <rect x="719" y="235" width="50" height="59"/><rect x="770" y="235" width="50" height="59"/>
+      <rect x="821" y="235" width="50" height="59"/><rect x="872" y="235" width="50" height="59"/>
+      <rect x="923" y="235" width="50" height="59"/><rect x="974" y="235" width="50" height="59"/>
+      <rect x="1025" y="235" width="50" height="59"/><rect x="1076" y="235" width="49" height="59"/>
+    </g>
+    <g class="code" fill="#5262c2" font-size="9.5" font-weight="700" text-anchor="middle">
+      <text x="744" y="207">8×8</text><text x="795" y="207">8×8</text><text x="846" y="207">8×8</text><text x="897" y="207">8×8</text>
+      <text x="948" y="207">8×8</text><text x="999" y="207">8×8</text><text x="1050" y="207">8×8</text><text x="1100.5" y="207">8×8</text>
+    </g>
+    <g class="code" fill="#277e88" font-size="9.5" font-weight="700" text-anchor="middle">
+      <text x="744" y="267">8×8</text><text x="795" y="267">8×8</text><text x="846" y="267">8×8</text><text x="897" y="267">8×8</text>
+      <text x="948" y="267">8×8</text><text x="999" y="267">8×8</text><text x="1050" y="267">8×8</text><text x="1100.5" y="267">8×8</text>
+    </g>
+    <path d="M719 308H1126" fill="none" stroke="#6476df" stroke-width="1.5"/>
+    <path d="M719 303V313M1126 303V313" fill="none" stroke="#6476df" stroke-width="1.5"/>
+    <text class="small" x="922.5" y="330" text-anchor="middle">eight 8-column groups loaded by <tspan class="code">.x8</tspan></text>
+
+    <!-- Thread distribution within one 8x8 block. -->
+    <rect x="40" y="382" width="1120" height="340" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="66" y="412" fill="#5262c2">THREAD VIEW INSIDE EVERY 8 × 8 BLOCK</text>
+    <text x="66" y="438" fill="#172033" font-size="14" font-weight="720">Each cell is a two-element vector in adjacent columns</text>
+
+    <!-- 8 rows x 4 vector columns; cell labels are warp-lane IDs. -->
+    <rect x="70" y="461" width="430" height="192" rx="8" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+    <g fill="none" stroke="#d0d7e5" stroke-width="1">
+      <path d="M177.5 461V653M285 461V653M392.5 461V653"/>
+      <path d="M70 485H500M70 509H500M70 533H500M70 557H500M70 581H500M70 605H500M70 629H500"/>
+    </g>
+    <rect x="71" y="462" width="105.5" height="22" fill="#d9f0e7" stroke="#31929e" stroke-width="2"/>
+    <rect x="286" y="486" width="105.5" height="22" fill="#ffe6d8" stroke="#d76543" stroke-width="2"/>
+    <g class="code" fill="#5262c2" font-size="10.5" font-weight="700" text-anchor="middle">
+      <text x="123.75" y="478">T0 · 2 values</text><text x="231.25" y="478">T1 · 2 values</text><text x="338.75" y="478">T2 · 2 values</text><text x="446.25" y="478">T3 · 2 values</text>
+      <text x="123.75" y="502">T4</text><text x="231.25" y="502">T5</text><text x="338.75" y="502" fill="#b74828">T6 · 2 values</text><text x="446.25" y="502">T7</text>
+      <text x="123.75" y="526">T8</text><text x="231.25" y="526">T9</text><text x="338.75" y="526">T10</text><text x="446.25" y="526">T11</text>
+      <text x="123.75" y="550">T12</text><text x="231.25" y="550">T13</text><text x="338.75" y="550">T14</text><text x="446.25" y="550">T15</text>
+      <text x="123.75" y="574">T16</text><text x="231.25" y="574">T17</text><text x="338.75" y="574">T18</text><text x="446.25" y="574">T19</text>
+      <text x="123.75" y="598">T20</text><text x="231.25" y="598">T21</text><text x="338.75" y="598">T22</text><text x="446.25" y="598">T23</text>
+      <text x="123.75" y="622">T24</text><text x="231.25" y="622">T25</text><text x="338.75" y="622">T26</text><text x="446.25" y="622">T27</text>
+      <text x="123.75" y="646">T28</text><text x="231.25" y="646">T29</text><text x="338.75" y="646">T30</text><text x="446.25" y="646">T31</text>
+    </g>
+    <text class="small" x="285" y="675" text-anchor="middle">8 rows × 4 vector columns = 32 warp lanes</text>
+
+    <!-- Concrete examples and compact mapping formula. -->
+    <rect x="535" y="452" width="590" height="220" rx="14" fill="#f7f8fb" stroke="#cfd6e5"/>
+    <text x="561" y="483" fill="#172033" font-size="13" font-weight="750">The same lane position repeats in all 2 × 8 blocks</text>
+
+    <rect x="560" y="503" width="242" height="54" rx="12" fill="#e7f6f7"/>
+    <text class="code" x="681" y="525" text-anchor="middle" fill="#277e88" font-size="11" font-weight="750">lane 0</text>
+    <text class="small" x="681" y="544" text-anchor="middle">rows 0, 8 · column pair 0–1</text>
+
+    <rect x="817" y="503" width="282" height="54" rx="12" fill="#fff0e9"/>
+    <text class="code" x="958" y="525" text-anchor="middle" fill="#b74828" font-size="11" font-weight="750">lane 6</text>
+    <text class="small" x="958" y="544" text-anchor="middle">rows 1, 9 · column pair 4–5</text>
+
+    <text class="code" x="561" y="590" fill="#5262c2" font-size="11.5" font-weight="700">row = 16·warp + lane//4 + 8·row_half</text>
+    <text class="code" x="561" y="616" fill="#5262c2" font-size="11.5" font-weight="700">col = 64·subtile + 8·group + 2·(lane%4) + pair_element</text>
+    <text class="small" x="561" y="643">row_half, pair_element ∈ {0,1} · group ∈ [0,7]</text>
+
+    <rect x="716" y="681" width="408" height="27" rx="13.5" fill="#edf0ff"/>
+    <text x="920" y="699" text-anchor="middle" fill="#4054be" font-size="10.5" font-weight="750"><tspan class="code">partition_D</tspan> constructs this global-C view automatically</text>
+  </g>
+</svg>

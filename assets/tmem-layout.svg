@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Blackwell Tensor Memory layout</title>
+  <desc id="desc">Tensor Memory is drawn as 128 horizontal lanes by 512 columns. The lanes are divided into four 32-lane regions accessed by the four warps of a warpgroup. A dataflow below shows tcgen05 MMA accumulating from shared A and B tiles into an FP32 C tile in TMEM, followed by a tcgen05 load into registers and a BF16 store to global memory.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#26304f" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-indigo" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6476df"/>
+    </marker>
+    <marker id="arrow-orange" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#d76543"/>
+    </marker>
+    <pattern id="allocation-columns" width="1.6875" height="10" patternUnits="userSpaceOnUse">
+      <path d="M1.6875 0V10" stroke="#d76543" stroke-width="0.45" stroke-opacity="0.65"/>
+    </pattern>
+    <pattern id="allocation-zoom" width="6" height="18" patternUnits="userSpaceOnUse">
+      <rect width="6" height="18" fill="#ffe6d8"/>
+      <path d="M6 0V18" stroke="#d76543" stroke-width="0.8"/>
+    </pattern>
+    <style>
+      .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .label { fill: #667085; font-size: 13px; font-weight: 560; }
+      .small { fill: #7a8496; font-size: 11px; font-weight: 540; }
+      .eyebrow { font-size: 11px; font-weight: 780; letter-spacing: 0.8px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="680" rx="24" fill="#fbfcff"/>
+
+  <g class="sans">
+    <text x="600" y="42" text-anchor="middle" fill="#172033" font-size="25" font-weight="750">Blackwell Tensor Memory (TMEM)</text>
+    <text x="600" y="69" text-anchor="middle" fill="#7a8496" font-size="14">A dedicated 128-lane × 512-column on-chip array for tcgen05</text>
+
+    <!-- TMEM array. -->
+    <rect x="55" y="101" width="1090" height="397" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="82" y="128" fill="#5262c2">PHYSICAL LAYOUT</text>
+
+    <text class="small" x="174" y="160" text-anchor="middle">0</text>
+    <text class="small" x="198" y="160" text-anchor="middle">…</text>
+    <text class="small" x="222" y="160" text-anchor="middle">31</text>
+    <text class="small" x="242" y="160" text-anchor="middle">32</text>
+    <text class="small" x="600" y="160" text-anchor="middle">…</text>
+    <text class="small" x="1000" y="160" text-anchor="middle">511</text>
+    <path d="M170 143H1030" fill="none" stroke="#6476df" stroke-width="1.8" marker-end="url(#arrow-indigo)"/>
+    <text class="label" x="600" y="132" text-anchor="middle">512 columns</text>
+
+    <rect x="170" y="169" width="860" height="292" rx="10" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+
+    <!-- Four 32-lane warp regions. -->
+    <rect x="171" y="170" width="858" height="72" fill="#edf0ff"/>
+    <rect x="171" y="243" width="858" height="72" fill="#f4f5ff"/>
+    <rect x="171" y="316" width="858" height="72" fill="#eef8f9"/>
+    <rect x="171" y="389" width="858" height="71" fill="#fff7f2"/>
+
+    <!-- One minimum allocation: 32 adjacent columns across all 128 lanes. -->
+    <rect x="171" y="170" width="54" height="290" fill="#ffe6d8" fill-opacity="0.72"/>
+    <rect x="171" y="170" width="54" height="290" fill="url(#allocation-columns)" stroke="#d76543" stroke-width="2"/>
+
+    <!-- Sparse row and column grid conveys the dense 128 × 512 array. -->
+    <g fill="none" stroke="#d5dbe6" stroke-width="1">
+      <path d="M170 188H1030M170 206H1030M170 224H1030"/>
+      <path d="M170 261H1030M170 279H1030M170 297H1030"/>
+      <path d="M170 334H1030M170 352H1030M170 370H1030"/>
+      <path d="M170 407H1030M170 425H1030M170 443H1030"/>
+      <path d="M210 169V461M250 169V461M290 169V461M390 169V461M490 169V461M590 169V461M690 169V461M790 169V461M890 169V461M990 169V461"/>
+    </g>
+    <g fill="none" stroke="#aeb8ca" stroke-width="1.5">
+      <path d="M170 242H1030M170 315H1030M170 388H1030"/>
+    </g>
+
+    <!-- Lane axis and warp ownership. -->
+    <path d="M101 169V461" fill="none" stroke="#6476df" stroke-width="1.8" marker-end="url(#arrow-indigo)"/>
+    <text class="label" x="76" y="315" text-anchor="middle" transform="rotate(-90 76 315)">128 lanes</text>
+    <g class="small" text-anchor="end">
+      <text x="157" y="181">lane 0</text>
+      <text x="157" y="238">lane 31</text>
+      <text x="157" y="254">lane 32</text>
+      <text x="157" y="311">lane 63</text>
+      <text x="157" y="327">lane 64</text>
+      <text x="157" y="384">lane 95</text>
+      <text x="157" y="400">lane 96</text>
+      <text x="157" y="457">lane 127</text>
+    </g>
+    <text class="small" x="1082" y="160" text-anchor="middle">32 lanes each</text>
+    <g fill="none" stroke-width="2">
+      <path d="M1039 174H1050V238H1039" stroke="#5262c2"/>
+      <path d="M1039 247H1050V311H1039" stroke="#6476df"/>
+      <path d="M1039 320H1050V384H1039" stroke="#277e88"/>
+      <path d="M1039 393H1050V456H1039" stroke="#b74828"/>
+    </g>
+    <g font-size="12" font-weight="750" text-anchor="middle">
+      <rect x="1061" y="192" width="64" height="27" rx="13.5" fill="#edf0ff"/>
+      <text x="1093" y="210" fill="#5262c2">warp 0</text>
+      <rect x="1061" y="265" width="64" height="27" rx="13.5" fill="#f1f2ff"/>
+      <text x="1093" y="283" fill="#6476df">warp 1</text>
+      <rect x="1061" y="338" width="64" height="27" rx="13.5" fill="#e7f6f7"/>
+      <text x="1093" y="356" fill="#277e88">warp 2</text>
+      <rect x="1061" y="411" width="64" height="27" rx="13.5" fill="#fff0e9"/>
+      <text x="1093" y="429" fill="#b74828">warp 3</text>
+    </g>
+
+    <path d="M171 465V473H225V465M225 473H239" fill="none" stroke="#d76543" stroke-width="1.8"/>
+    <rect x="240" y="464" width="192" height="18" fill="url(#allocation-zoom)" stroke="#d76543" stroke-width="1.4"/>
+    <rect x="447" y="460" width="216" height="27" rx="13.5" fill="#fff0e9"/>
+    <text x="555" y="478" text-anchor="middle" fill="#b74828" font-size="11" font-weight="750">32 columns · minimum allocation</text>
+
+    <!-- Kernel 2 dataflow. -->
+    <rect x="55" y="522" width="1090" height="112" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="82" y="549" fill="#5262c2">KERNEL 2 DATAFLOW</text>
+
+    <rect x="90" y="566" width="151" height="45" rx="12" fill="#f7f8fb" stroke="#cfd6e5"/>
+    <rect x="107" y="577" width="45" height="23" rx="5" fill="#dfe4ff" stroke="#6476df"/>
+    <rect x="178" y="577" width="45" height="23" rx="5" fill="#d4edef" stroke="#31929e"/>
+    <text x="129.5" y="593" text-anchor="middle" fill="#4054be" font-size="12" font-weight="750">A</text>
+    <text x="200.5" y="593" text-anchor="middle" fill="#277e88" font-size="12" font-weight="750">B</text>
+    <text class="small" x="165.5" y="625" text-anchor="middle">shared memory</text>
+
+    <path d="M241 588H337" fill="none" stroke="#6476df" stroke-width="2.2" marker-end="url(#arrow-indigo)"/>
+    <text class="code" x="289" y="577" text-anchor="middle" fill="#5262c2" font-size="11" font-weight="750">tcgen05.mma</text>
+
+    <rect x="347" y="558" width="246" height="59" rx="13" fill="#fff0e9" stroke="#d76543"/>
+    <text x="470" y="582" text-anchor="middle" fill="#b74828" font-size="14" font-weight="750">FP32 accumulator tile C</text>
+    <text class="code" x="470" y="604" text-anchor="middle" fill="#8f4527" font-size="12">stored in TMEM</text>
+
+    <path d="M593 588H688" fill="none" stroke="#6476df" stroke-width="2.2" marker-end="url(#arrow-indigo)"/>
+    <text class="code" x="640" y="577" text-anchor="middle" fill="#5262c2" font-size="11" font-weight="750">tcgen05.ld</text>
+
+    <rect x="698" y="566" width="132" height="45" rx="12" fill="#edf0ff" stroke="#cbd2f2"/>
+    <text x="764" y="594" text-anchor="middle" fill="#4054be" font-size="13" font-weight="750">registers</text>
+
+    <path d="M830 588H925" fill="none" stroke="#6476df" stroke-width="2.2" marker-end="url(#arrow-indigo)"/>
+    <text class="code" x="877" y="577" text-anchor="middle" fill="#5262c2" font-size="11" font-weight="750">cast BF16</text>
+
+    <rect x="935" y="566" width="167" height="45" rx="12" fill="#f2fbfc" stroke="#a8d9dd"/>
+    <text x="1018.5" y="584" text-anchor="middle" fill="#277e88" font-size="13" font-weight="750">output tile C</text>
+    <text class="small" x="1018.5" y="601" text-anchor="middle">global memory</text>
+  </g>
+</svg>

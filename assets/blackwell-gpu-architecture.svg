@@ -1,0 +1,126 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">Simplified Blackwell GPU architecture</title>
+  <desc id="desc">Three representative streaming multiprocessors, each containing warp schedulers, registers, shared memory, and tensor cores, connect through a shared L2 cache to global HBM memory.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#26304f" flood-opacity="0.08"/>
+    </filter>
+    <linearGradient id="sm-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f8f9ff"/>
+    </linearGradient>
+    <linearGradient id="memory-fill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#edf9fa"/>
+      <stop offset="1" stop-color="#e5f5f7"/>
+    </linearGradient>
+    <pattern id="hbm-banks" width="70" height="48" patternUnits="userSpaceOnUse">
+      <rect width="70" height="48" fill="#fff7ed"/>
+      <path d="M70 0V48" stroke="#efd7bc" stroke-width="2"/>
+    </pattern>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto-start-reverse">
+      <path d="M0,0 L9,4.5 L0,9 Z" fill="#6677df"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .sm-title { fill: #172033; font-size: 22px; font-weight: 750; }
+      .label { fill: #344054; font-size: 16px; font-weight: 680; }
+      .sub-label { fill: #667085; font-size: 13px; font-weight: 520; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="780" rx="24" fill="#fbfcff"/>
+
+  <g class="sans">
+    <text x="600" y="45" text-anchor="middle" fill="#172033" font-size="25" font-weight="750">A simplified Blackwell GPU</text>
+    <text x="600" y="72" text-anchor="middle" fill="#7a8496" font-size="14">Three representative streaming multiprocessors shown · not to scale</text>
+
+    <rect x="38" y="96" width="1124" height="638" rx="24" fill="none" stroke="#cfd6e5" stroke-width="2" stroke-dasharray="7 8"/>
+    <rect x="68" y="78" width="176" height="34" rx="17" fill="#fbfcff"/>
+    <text x="156" y="100" text-anchor="middle" fill="#667085" font-size="13" font-weight="750" letter-spacing="1.5">GPU PACKAGE</text>
+
+    <!-- Shared data paths sit behind the SM cards. -->
+    <g fill="none" stroke="#6677df" stroke-width="3" stroke-linecap="round" marker-start="url(#arrow)" marker-end="url(#arrow)">
+      <path d="M220 458 V535"/>
+      <path d="M600 458 V535"/>
+      <path d="M980 458 V535"/>
+      <path d="M600 625 V664"/>
+    </g>
+
+    <!-- SM 0 -->
+    <g filter="url(#shadow)">
+      <rect x="80" y="126" width="280" height="332" rx="18" fill="url(#sm-fill)" stroke="#cfd6e5"/>
+      <path d="M80 144a18 18 0 0 1 18-18h244a18 18 0 0 1 18 18v51H80z" fill="#edf0ff"/>
+      <path d="M80 195H360" stroke="#cbd2f2"/>
+    </g>
+    <circle cx="108" cy="160" r="9" fill="#6476df"/>
+    <text class="sm-title" x="128" y="168">SM 0</text>
+    <text class="sub-label" x="334" y="166" text-anchor="end">compute</text>
+    <rect x="102" y="207" width="236" height="40" rx="10" fill="#f7f8fb" stroke="#d7dce6"/>
+    <text class="label" x="220" y="233" text-anchor="middle">Warp schedulers</text>
+    <rect x="102" y="257" width="236" height="50" rx="10" fill="#f1f3ff" stroke="#aeb9ee"/>
+    <text class="label" x="220" y="279" text-anchor="middle">Register file</text>
+    <text class="sub-label" x="220" y="297" text-anchor="middle">per-SM, on-chip</text>
+    <rect x="102" y="317" width="236" height="50" rx="10" fill="#eaf7f8" stroke="#9acbd0"/>
+    <text class="label" x="220" y="339" text-anchor="middle">Shared memory</text>
+    <text class="sub-label" x="220" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <rect x="102" y="377" width="236" height="57" rx="10" fill="#fff0e9" stroke="#e4aa92"/>
+    <text class="label" x="220" y="401" text-anchor="middle" fill="#9c3f24">Tensor cores</text>
+    <text class="sub-label" x="220" y="420" text-anchor="middle">matrix operations</text>
+
+    <!-- SM 1 -->
+    <g filter="url(#shadow)">
+      <rect x="460" y="126" width="280" height="332" rx="18" fill="url(#sm-fill)" stroke="#cfd6e5"/>
+      <path d="M460 144a18 18 0 0 1 18-18h244a18 18 0 0 1 18 18v51H460z" fill="#edf0ff"/>
+      <path d="M460 195H740" stroke="#cbd2f2"/>
+    </g>
+    <circle cx="488" cy="160" r="9" fill="#6476df"/>
+    <text class="sm-title" x="508" y="168">SM 1</text>
+    <text class="sub-label" x="714" y="166" text-anchor="end">compute</text>
+    <rect x="482" y="207" width="236" height="40" rx="10" fill="#f7f8fb" stroke="#d7dce6"/>
+    <text class="label" x="600" y="233" text-anchor="middle">Warp schedulers</text>
+    <rect x="482" y="257" width="236" height="50" rx="10" fill="#f1f3ff" stroke="#aeb9ee"/>
+    <text class="label" x="600" y="279" text-anchor="middle">Register file</text>
+    <text class="sub-label" x="600" y="297" text-anchor="middle">per-SM, on-chip</text>
+    <rect x="482" y="317" width="236" height="50" rx="10" fill="#eaf7f8" stroke="#9acbd0"/>
+    <text class="label" x="600" y="339" text-anchor="middle">Shared memory</text>
+    <text class="sub-label" x="600" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <rect x="482" y="377" width="236" height="57" rx="10" fill="#fff0e9" stroke="#e4aa92"/>
+    <text class="label" x="600" y="401" text-anchor="middle" fill="#9c3f24">Tensor cores</text>
+    <text class="sub-label" x="600" y="420" text-anchor="middle">matrix operations</text>
+
+    <!-- SM 2 -->
+    <g filter="url(#shadow)">
+      <rect x="840" y="126" width="280" height="332" rx="18" fill="url(#sm-fill)" stroke="#cfd6e5"/>
+      <path d="M840 144a18 18 0 0 1 18-18h244a18 18 0 0 1 18 18v51H840z" fill="#edf0ff"/>
+      <path d="M840 195H1120" stroke="#cbd2f2"/>
+    </g>
+    <circle cx="868" cy="160" r="9" fill="#6476df"/>
+    <text class="sm-title" x="888" y="168">SM 2</text>
+    <text class="sub-label" x="1094" y="166" text-anchor="end">compute</text>
+    <rect x="862" y="207" width="236" height="40" rx="10" fill="#f7f8fb" stroke="#d7dce6"/>
+    <text class="label" x="980" y="233" text-anchor="middle">Warp schedulers</text>
+    <rect x="862" y="257" width="236" height="50" rx="10" fill="#f1f3ff" stroke="#aeb9ee"/>
+    <text class="label" x="980" y="279" text-anchor="middle">Register file</text>
+    <text class="sub-label" x="980" y="297" text-anchor="middle">per-SM, on-chip</text>
+    <rect x="862" y="317" width="236" height="50" rx="10" fill="#eaf7f8" stroke="#9acbd0"/>
+    <text class="label" x="980" y="339" text-anchor="middle">Shared memory</text>
+    <text class="sub-label" x="980" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <rect x="862" y="377" width="236" height="57" rx="10" fill="#fff0e9" stroke="#e4aa92"/>
+    <text class="label" x="980" y="401" text-anchor="middle" fill="#9c3f24">Tensor cores</text>
+    <text class="sub-label" x="980" y="420" text-anchor="middle">matrix operations</text>
+
+    <!-- Shared memory hierarchy -->
+    <g filter="url(#shadow)">
+      <rect x="120" y="535" width="960" height="90" rx="16" fill="url(#memory-fill)" stroke="#8fc4ca" stroke-width="1.5"/>
+    </g>
+    <text x="600" y="573" text-anchor="middle" fill="#226f78" font-size="21" font-weight="750">Shared L2 cache</text>
+    <text x="600" y="598" text-anchor="middle" fill="#55828a" font-size="14">shared by every SM on the GPU</text>
+
+    <g filter="url(#shadow)">
+      <rect x="240" y="664" width="720" height="54" rx="14" fill="url(#hbm-banks)" stroke="#e1b98e" stroke-width="1.5"/>
+    </g>
+    <text x="600" y="687" text-anchor="middle" fill="#8d4d1f" font-size="19" font-weight="750">Global memory · HBM</text>
+    <text x="600" y="707" text-anchor="middle" fill="#9a7050" font-size="13">large, off-chip device memory</text>
+  </g>
+</svg>

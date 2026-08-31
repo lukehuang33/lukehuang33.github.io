@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="title desc">
+  <title id="title">CuTe local_tile creates a tensor view</title>
+  <desc id="desc">A highlighted tile with global row coordinates m zero and m zero plus one and global column coordinates n zero through n zero plus two is passed through local_tile and shown with local coordinates zero through one and zero through two. Dashed guide lines emphasize that both views use the original storage and no data is copied.</desc>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="6" stdDeviation="9" flood-color="#26304f" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrow-indigo" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#6476df"/>
+    </marker>
+    <style>
+      .sans { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .label { fill: #667085; font-size: 13px; font-weight: 560; }
+      .small { fill: #7a8496; font-size: 11px; font-weight: 540; }
+      .eyebrow { font-size: 11px; font-weight: 780; letter-spacing: 0.8px; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="460" rx="24" fill="#fbfcff"/>
+
+  <g class="sans">
+    <text x="600" y="42" text-anchor="middle" fill="#172033" font-size="25" font-weight="750">Tiling creates a view, not a copy</text>
+
+    <!-- Original tensor. -->
+    <rect x="55" y="76" width="455" height="308" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="82" y="106" fill="#5262c2">ORIGINAL TENSOR</text>
+    <text class="code" x="82" y="132" fill="#172033" font-size="15" font-weight="720">A</text>
+    <text class="small" x="99" y="132">global-memory storage</text>
+
+    <rect x="100" y="154" width="365" height="180" rx="8" fill="#f8f9fc" stroke="#bfc8d8" stroke-width="1.5"/>
+    <g fill="none" stroke="#d5dbe6" stroke-width="1">
+      <path d="M145.625 154V334M191.25 154V334M236.875 154V334M282.5 154V334M328.125 154V334M373.75 154V334M419.375 154V334"/>
+      <path d="M100 184H465M100 214H465M100 244H465M100 274H465M100 304H465"/>
+    </g>
+
+    <!-- The selected 3 × 2 tile remains part of A. -->
+    <rect x="282.5" y="214" width="136.875" height="60" fill="#dfe4ff" stroke="#6476df" stroke-width="2.5"/>
+    <g fill="none" stroke="#aeb9f0" stroke-width="1">
+      <path d="M328.125 214V274M373.75 214V274M282.5 244H419.375"/>
+    </g>
+    <g class="code" fill="#5262c2" font-size="9" font-weight="700">
+      <g text-anchor="middle">
+        <text x="305.313" y="209">n₀</text>
+        <text x="350.938" y="209">n₀+1</text>
+        <text x="396.563" y="209">n₀+2</text>
+      </g>
+      <g text-anchor="end">
+        <text x="276" y="232">m₀</text>
+        <text x="276" y="262">m₀+1</text>
+      </g>
+    </g>
+    <rect x="277" y="283" width="148" height="26" rx="13" fill="#edf0ff"/>
+    <text x="351" y="301" text-anchor="middle" fill="#4054be" font-size="11" font-weight="750">tile selected by this CTA</text>
+
+    <!-- local_tile transforms coordinates, not storage. -->
+    <path d="M525 223H670" fill="none" stroke="#6476df" stroke-width="2.4" marker-end="url(#arrow-indigo)"/>
+    <rect x="531" y="177" width="133" height="29" rx="14.5" fill="#edf0ff"/>
+    <text class="code" x="597.5" y="196" text-anchor="middle" fill="#4054be" font-size="12" font-weight="750">local_tile</text>
+    <text class="small" x="597.5" y="248" text-anchor="middle">changes coordinates</text>
+
+    <!-- Tile-local tensor view. -->
+    <rect x="690" y="76" width="455" height="308" rx="18" fill="#ffffff" stroke="#d9dfeb" filter="url(#shadow)"/>
+    <text class="eyebrow" x="717" y="106" fill="#277e88">TILE VIEW</text>
+    <text class="code" x="717" y="132" fill="#172033" font-size="15" font-weight="720">gA</text>
+    <text class="small" x="743" y="132">tile-local coordinates</text>
+
+    <rect x="770" y="154" width="295" height="180" rx="8" fill="#edf0ff" stroke="#6476df" stroke-width="2.5"/>
+    <g fill="none" stroke="#aeb9f0" stroke-width="1.2">
+      <path d="M868.333 154V334M966.667 154V334M770 244H1065"/>
+    </g>
+    <g class="code" fill="#5262c2" font-size="12" font-weight="650" text-anchor="middle">
+      <text x="819.167" y="203">(0, 0)</text>
+      <text x="917.5" y="203">(0, 1)</text>
+      <text x="1015.833" y="203">(0, 2)</text>
+      <text x="819.167" y="293">(1, 0)</text>
+      <text x="917.5" y="293">(1, 1)</text>
+      <text x="1015.833" y="293">(1, 2)</text>
+    </g>
+
+    <!-- The two drawings refer to the same underlying addresses. -->
+    <path d="M419.375 214C535 135 650 135 770 154M419.375 274C535 353 650 353 770 334" fill="none" stroke="#31929e" stroke-width="1.5" stroke-dasharray="5 6" opacity="0.75"/>
+    <rect x="414" y="402" width="372" height="34" rx="17" fill="#e7f6f7"/>
+    <text x="600" y="424" text-anchor="middle" fill="#277e88" font-size="12" font-weight="750">same storage addresses · no data moved</text>
+  </g>
+</svg>
