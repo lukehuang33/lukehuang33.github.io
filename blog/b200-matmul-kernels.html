@@ -9,8 +9,8 @@
     <meta property="og:type" content="article">
     <title>Steps for Writing a Speed-of-Light GEMM kernel: Part 1 · Luke D. Huang</title>
     <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="../styles.css">
-    <link rel="stylesheet" href="blog.css?v=4">
+    <link rel="stylesheet" href="../styles.css?v=4">
+    <link rel="stylesheet" href="blog.css?v=7">
     <script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
   </head>
   <body>
@@ -129,7 +129,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/matmul-row-column.svg?v=5"
+              src="../assets/matmul-row-column.svg?v=7"
               width="1200"
               height="620"
               loading="lazy"
@@ -150,7 +150,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/blackwell-gpu-architecture.svg?v=3"
+              src="../assets/blackwell-gpu-architecture.svg?v=5"
               width="1200"
               height="780"
               loading="lazy"
@@ -187,7 +187,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/sequential-vs-gpu-threads.svg?v=2"
+              src="../assets/sequential-vs-gpu-threads.svg?v=4"
               width="1200"
               height="660"
               loading="lazy"
@@ -235,7 +235,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/b200-matmul-kernel-progress.svg?v=1"
+              src="../assets/b200-matmul-kernel-progress.svg?v=3"
               width="1200"
               height="700"
               loading="lazy"
@@ -292,7 +292,7 @@ A[m, k]  <span class="code-comment"># The layout converts (m, k) into a memory o
 
           <figure class="article-figure">
             <img
-              src="../assets/cutedsl-local-tile-view.svg?v=2"
+              src="../assets/cutedsl-local-tile-view.svg?v=4"
               alt="A tile labeled with symbolic global row and column coordinates becomes a zero-based tile-local CuTe view while both views reference the same storage."
               width="1200"
               height="460"
@@ -399,7 +399,7 @@ tiled_mma = cute.make_tiled_mma(mma_op)</code></pre>
 
           <figure class="article-figure">
             <img
-              src="../assets/matmul-loop-tiling.svg?v=4"
+              src="../assets/matmul-loop-tiling.svg?v=6"
               width="1200"
               height="650"
               loading="lazy"
@@ -485,7 +485,7 @@ cute.copy(
 
           <figure class="article-figure">
             <img
-              src="../assets/tma-mma-barrier-flow.svg?v=2"
+              src="../assets/tma-mma-barrier-flow.svg?v=4"
               width="1200"
               height="650"
               loading="lazy"
@@ -509,7 +509,7 @@ cute.copy(
 
           <figure class="article-figure">
             <img
-              src="../assets/tmem-layout.svg?v=5"
+              src="../assets/tmem-layout.svg?v=7"
               width="1200"
               height="680"
               loading="lazy"
@@ -639,7 +639,7 @@ thread_global_C_view = thread_load.partition_D(global_C_subtiles)</code></pre>
 
           <figure class="article-figure">
             <img
-              src="../assets/tmem-warp-output-view.svg?v=2"
+              src="../assets/tmem-warp-output-view.svg?v=4"
               width="1200"
               height="760"
               loading="lazy"
@@ -694,7 +694,7 @@ for each subtile:
 
           <figure class="article-figure">
             <img
-              src="../assets/b200-matmul-kernel-progress-2.svg?v=1"
+              src="../assets/b200-matmul-kernel-progress-2.svg?v=3"
               width="1200"
               height="700"
               loading="lazy"
@@ -724,7 +724,7 @@ for each subtile:
 
           <figure class="article-figure">
             <img
-              src="../assets/shared-memory-bank-conflicts.svg?v=6"
+              src="../assets/shared-memory-bank-conflicts.svg?v=8"
               width="1200"
               height="560"
               loading="lazy"
@@ -745,7 +745,7 @@ for each subtile:
 
           <figure class="article-figure">
             <img
-              src="../assets/shared-memory-swizzling.svg?v=4"
+              src="../assets/shared-memory-swizzling.svg?v=6"
               width="1200"
               height="650"
               loading="lazy"
@@ -762,7 +762,7 @@ for each subtile:
 
           <figure class="article-figure">
             <img
-              src="../assets/b200-matmul-kernel-progress-3.svg?v=1"
+              src="../assets/b200-matmul-kernel-progress-3.svg?v=3"
               width="1200"
               height="700"
               loading="lazy"
