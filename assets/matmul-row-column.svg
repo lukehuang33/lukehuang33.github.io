@@ -122,8 +122,8 @@
   <path d="M615 400 C615 435 585 445 560 470" fill="none" stroke="#5a867e" stroke-width="2.5" marker-end="url(#arrow-teal)"/>
   <path d="M930 470 C975 432 1005 419 1005 389" fill="none" stroke="#a56851" stroke-width="2.5" marker-end="url(#arrow-orange)"/>
 
-  <g transform="translate(600 0)" font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
-    <rect x="-330" y="470" width="660" height="70" rx="2" fill="#ffffff" stroke="#737779"/>
-    <text class="formula-text" x="0" y="505" text-anchor="middle" dominant-baseline="middle" fill="#222222">c<tspan class="formula-subscript">ij</tspan> = [ a<tspan class="formula-subscript">i1</tspan>  a<tspan class="formula-subscript">i2</tspan>  ···  a<tspan class="formula-subscript">ik</tspan> ] · [ b<tspan class="formula-subscript">1j</tspan>  b<tspan class="formula-subscript">2j</tspan>  ···  b<tspan class="formula-subscript">kj</tspan> ]<tspan class="formula-superscript">T</tspan></text>
+  <g font-family="'Helvetica Neue', Helvetica, Arial, sans-serif">
+    <rect x="270" y="470" width="660" height="70" rx="2" fill="#ffffff" stroke="#737779"/>
+    <text class="formula-text" x="600" y="505" text-anchor="middle" dominant-baseline="middle" fill="#222222">c<tspan class="formula-subscript">ij</tspan> = [ a<tspan class="formula-subscript">i1</tspan>  a<tspan class="formula-subscript">i2</tspan>  ···  a<tspan class="formula-subscript">ik</tspan> ] · [ b<tspan class="formula-subscript">1j</tspan>  b<tspan class="formula-subscript">2j</tspan>  ···  b<tspan class="formula-subscript">kj</tspan> ]<tspan class="formula-superscript">T</tspan></text>
   </g>
 </svg>

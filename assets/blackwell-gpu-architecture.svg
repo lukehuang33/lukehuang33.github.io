@@ -75,8 +75,7 @@
     <text class="label" x="220" y="279" text-anchor="middle">Register file</text>
     <text class="sub-label" x="220" y="297" text-anchor="middle">per-SM, on-chip</text>
     <rect x="102" y="317" width="236" height="50" rx="2" fill="#eaf7f8" stroke="#5d7a73"/>
-    <text class="label" x="220" y="339" text-anchor="middle">Shared memory</text>
-    <text class="sub-label" x="220" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <text class="label" x="220" y="342" text-anchor="middle" dominant-baseline="middle">Shared memory</text>
     <rect x="102" y="377" width="236" height="57" rx="2" fill="#f3e9e4" stroke="#8d5f4e"/>
     <text class="label" x="220" y="401" text-anchor="middle" fill="#854532">Tensor cores</text>
     <text class="sub-label" x="220" y="420" text-anchor="middle">matrix operations</text>
@@ -96,8 +95,7 @@
     <text class="label" x="600" y="279" text-anchor="middle">Register file</text>
     <text class="sub-label" x="600" y="297" text-anchor="middle">per-SM, on-chip</text>
     <rect x="482" y="317" width="236" height="50" rx="2" fill="#eaf7f8" stroke="#5d7a73"/>
-    <text class="label" x="600" y="339" text-anchor="middle">Shared memory</text>
-    <text class="sub-label" x="600" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <text class="label" x="600" y="342" text-anchor="middle" dominant-baseline="middle">Shared memory</text>
     <rect x="482" y="377" width="236" height="57" rx="2" fill="#f3e9e4" stroke="#8d5f4e"/>
     <text class="label" x="600" y="401" text-anchor="middle" fill="#854532">Tensor cores</text>
     <text class="sub-label" x="600" y="420" text-anchor="middle">matrix operations</text>
@@ -117,8 +115,7 @@
     <text class="label" x="980" y="279" text-anchor="middle">Register file</text>
     <text class="sub-label" x="980" y="297" text-anchor="middle">per-SM, on-chip</text>
     <rect x="862" y="317" width="236" height="50" rx="2" fill="#eaf7f8" stroke="#5d7a73"/>
-    <text class="label" x="980" y="339" text-anchor="middle">Shared memory</text>
-    <text class="sub-label" x="980" y="357" text-anchor="middle">software-managed scratchpad</text>
+    <text class="label" x="980" y="342" text-anchor="middle" dominant-baseline="middle">Shared memory</text>
     <rect x="862" y="377" width="236" height="57" rx="2" fill="#f3e9e4" stroke="#8d5f4e"/>
     <text class="label" x="980" y="401" text-anchor="middle" fill="#854532">Tensor cores</text>
     <text class="sub-label" x="980" y="420" text-anchor="middle">matrix operations</text>

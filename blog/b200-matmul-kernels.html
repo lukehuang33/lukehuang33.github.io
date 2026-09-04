@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="A draft technical walkthrough by Luke D. Huang on writing high-performance matrix-multiplication kernels for NVIDIA B200 GPUs.">
+    <meta name="description" content="A technical walkthrough by Luke D. Huang on writing high-performance matrix-multiplication kernels for NVIDIA B200 GPUs.">
     <meta property="og:title" content="Writing Fast Matmul Kernels on NVIDIA B200">
     <meta property="og:description" content="From a correct baseline to a high-performance Blackwell matmul kernel.">
     <meta property="og:type" content="article">
@@ -21,7 +21,7 @@
 
     <main class="article-page">
       <header class="article-header">
-        <p class="article-kicker"><span>Draft</span> · August 2026 · 19 min read</p>
+        <p class="article-kicker">August 2026 · 19 min read</p>
         <h1>Steps for Writing a Speed-of-Light GEMM kernel: Part 1</h1>
         <p class="article-deck">
           Part 1 of a series of 9 kernels in CuTeDSL, going from a naive matmul to a SOTA kernel that reaches 99% cuBLAS.
@@ -49,10 +49,10 @@
           <ul>
             <li><strong>Goal:</strong> build a sequence of increasingly optimized BF16 matrix multiplication kernels in CuTeDSL for B200, ultimately reaching 99% of cuBLAS performance on several matrix dimensions.</li>
             <li><strong>Introduce the GPU programming model</strong> and how it could be utilized for matrix multiplications.</li>
-            <li><strong>Kernel 1—naive matmul:</strong> assign one thread to each output element and have it walk across the entire K dimension. This baseline achieves 4 TFLOP/s.</li>
+            <li><strong>Kernel 1 (naive matmul):</strong> assign one thread to each output element and have it walk across the entire K dimension. This baseline achieves 4 TFLOP/s.</li>
             <li><strong>A CuTeDSL mental model:</strong> how CuTeDSL describes where data is stored, divides that data into tiles, and maps those tiles onto GPU operations.</li>
-            <li><strong>Kernel 2—tensor cores, TMA, and TMEM:</strong> give each CTA a tile of C, use TMA and barriers to move matching tiles of A and B into shared memory, issue <code>tcgen05</code> MMA instructions that accumulate into TMEM, and use a per-thread epilogue view to move the result through registers into global memory. These changes raise throughput to 155 TFLOP/s.</li>
-            <li><strong>Kernel 3—swizzling:</strong> identify shared memory bank conflicts as the next bottleneck, then change the shared memory layout so simultaneous reads are distributed across banks. This layout-only change raises throughput to 285 TFLOP/s.</li>
+            <li><strong>Kernel 2 (tensor cores, TMA, and TMEM):</strong> give each CTA a tile of C, use TMA and barriers to move matching tiles of A and B into shared memory, issue <code>tcgen05</code> MMA instructions that accumulate into TMEM, and use a per-thread epilogue view to move the result through registers into global memory. These changes raise throughput to 155 TFLOP/s.</li>
+            <li><strong>Kernel 3(swizzling):</strong> identify shared memory bank conflicts as the next bottleneck, then change the shared memory layout so simultaneous reads are distributed across banks. This layout-only change raises throughput to 285 TFLOP/s.</li>
           </ul>
         </section>
 
@@ -63,8 +63,8 @@
           </p>
 
           <p>
-            In this blog and the next few parts, I would like to document the steps needed to write a speed-of-light GEMM kernel, introducing the hardware-specific optimizations and CuTeDSL libraries that were used. Starting from a simple correct kernel,
-            I will progressively introduce Blackwell tensor-core tiling, TMA data movement, shared-memory layouts, multistage pipelines, warp specialization, persistent scheduling, and Gilbert paths. For each iteration, I show the bottleneck, the code change, and its measured effect.
+            In this blog and the following parts, I would like to document the steps needed to write a speed-of-light GEMM kernel, introducing the hardware-specific optimizations and CuTeDSL libraries that were used. Starting from a simple correct kernel, in this series,
+            I will progressively introduce Blackwell tensor core tiling, TMA data movement, shared memory layouts, multistage pipelines, warp specialization, persistent scheduling, and Gilbert paths. For each iteration, I show the bottleneck, the code change, and its measured effect.
           </p>
 
         </section>
@@ -129,7 +129,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/matmul-row-column.svg?v=7"
+              src="../assets/matmul-row-column.svg?v=8"
               width="1200"
               height="620"
               loading="lazy"
@@ -150,7 +150,7 @@ function matmul(A, B):
 
           <figure class="article-figure">
             <img
-              src="../assets/blackwell-gpu-architecture.svg?v=5"
+              src="../assets/blackwell-gpu-architecture.svg?v=7"
               width="1200"
               height="780"
               loading="lazy"
@@ -198,13 +198,20 @@ function matmul(A, B):
             </figcaption>
           </figure>
 
+          <p>
+            Finally, we will go over the organization of threads in a GPU. 
+            The number of threads that could be scheduled in a single instruction is called a <b>warp</b>, which consists of 32 threads.
+            Groups of 4 warps form a <b>cooperative thread array (CTA)</b> or thread block, which is the granularity at which we assign threads to a SM and allocate resources to them. 
+            Note that it is possible for multiple CTAs to be scheduled onto the same SM, but each individual CTA must be scheduled onto only 1 CTA.
+          </p>
+
         </section>
 
         <section id="kernel_1_naive">
           <h2>Kernel 1 + Specifications </h2>
 
           <p>
-            The code for this kernel can be found <a href="https://github.com/lukehuang33/kernel_tasks/blob/main/runpod-matmul-test/kernel_1_naive.py">here</a>.
+            The code for this kernel can be found <a href="https://github.com/lukehuang33/gemm_kernel_implementation/blob/main/kernel_1_naive.py">here</a>.
           </p>
 
           <p>
@@ -217,7 +224,7 @@ function matmul(A, B):
           <p>
             Furthermore, every reported runtime uses the same measurement protocol.
             We compile the CuTeDSL kernel before benchmarking, run 10 warmup iterations, and then place CUDA events around 100 consecutive kernel launches, taking the average latency.
-            The warmup launches initialize the CUDA execution path and allow transient effects such as clock ramp-up to settle, while timing many launches together reduces the influence of event resolution, host-launch overhead, and run-to-run noise.
+            The warmup launches initialize the CUDA execution path and allow transient effects such as clock rampup to settle, while timing many launches together reduces the influence of host-launch overhead and run-to-run noise.
             Excluding JIT (just-in-time) compilation is also important because compilation is a one-time setup cost rather than part of the kernel's steady-state execution time.
             This protocol therefore measures warmed, steady-state throughput rather than first-launch latency.
           </p>
@@ -262,9 +269,9 @@ function matmul(A, B):
           <h3>A tensor is storage plus a layout</h3>
 
           <p>
-            A CuTe <code>Tensor</code> is not simply a multidimensional allocation. Conceptually, it combines an engine—usually a
-            pointer or another storage object—with a <a href="https://docs.nvidia.com/cutlass/latest/media/docs/cpp/cute/03_tensor.html"><code>Layout</code></a>. The layout maps a logical coordinate to an offset in that
-            storage. For example, a row-major <code>M × K</code> matrix has shape <code>(M, K)</code> and strides <code>(K, 1)</code>, so
+            A CuTe <code>Tensor</code> is not simply a multidimensional allocation. 
+            Conceptually, it combines an engine, which is a reference pointer into global, shared, or register memory, with a <a href="https://docs.nvidia.com/cutlass/latest/media/docs/cpp/cute/03_tensor.html"><code>Layout</code></a>. 
+            The layout maps a logical coordinate to an offset compared to that reference pointer. For example, a row-major <code>M × K</code> matrix has shape <code>(M, K)</code> and strides <code>(K, 1)</code>, so
             coordinate <code>(m, k)</code> maps to offset <code>m * K + k</code>.
           </p>
 
@@ -277,7 +284,7 @@ A[m, k]  <span class="code-comment"># The layout converts (m, k) into a memory o
           <p>
             This separation is important because the same logical tile can have different physical layouts in global memory,
             shared memory, tensor memory, or registers. CuTe layouts can also be hierarchical: a mode may itself contain several
-            nested modes. It's also important to note that a layout describes indexing; creating or transforming one does not by
+            nested modes. It's also important to note that a layout only describes indexing; creating or transforming one does not by
             itself move any data.
           </p>
 
@@ -304,7 +311,7 @@ A[m, k]  <span class="code-comment"># The layout converts (m, k) into a memory o
           </figure>
 
           <p>
-            CuTe uses <code>None</code> in a coordinate to keep a mode instead of selecting one position from it. This is how code can
+            CuTe uses <code>None</code> in a coordinate to keep the global view instead of constructing a new view. This is how code can
             select one CTA coordinate while retaining the complete <code>M</code>, <code>N</code>, or <code>K</code> tile that the CTA will process. More advanced
             operations such as <code>flat_divide</code> and <code>group_modes</code> reshape these logical modes, but they follow the same
             rule: they change how a tensor is viewed and indexed, not where its values physically live.
@@ -314,9 +321,9 @@ A[m, k]  <span class="code-comment"># The layout converts (m, k) into a memory o
 
           <p>
             A layout describes data, but it does not say how the GPU should operate on that data. CuTe represents a small hardware
-            operation with an <em>atom</em>. An MMA atom, for example, describes one supported matrix-multiply-accumulate instruction and the mapping
-            between its participating threads and values. A copy atom does the same for a data-movement instruction. The atom therefore
-            acts as a contract: its operands must be presented with the shapes and layouts expected by that hardware instruction.
+            operation with an <em>atom</em>. An MMA atom, for example, describes one matrix multiply accumulate instruction and the mapping
+            between its participating threads and values. A copy atom does the same for a data movement instruction. The atom therefore
+            acts as a contract whose operands must be presented with the shapes and layouts expected by that hardware instruction.
           </p>
 
           <p>
@@ -361,19 +368,19 @@ tiled_mma = cute.make_tiled_mma(mma_op)</code></pre>
 
           <p>
             CuTeDSL code runs in <a href="https://docs.nvidia.com/cutlass/latest/media/docs/pythonDSL/cute_dsl_general/dsl_code_generation.html">two stages</a>, but it is not compiled twice. First, calling <code>cute.compile</code> runs the
-            <em>meta-stage</em> on the CPU. CuTeDSL traces the host function, labeled <code>@cute.jit</code>, and the device function, labeled <code>@cute.kernel</code>, evaluates everything already known, and emits code for everything that will only be known later.
+            meta-stage on the CPU. CuTeDSL traces the host function, labeled <code>@cute.jit</code>, and the device function, labeled <code>@cute.kernel</code>, evaluates everything already known, and emits code for everything that will only be known later.
             Since we know some values, e.g. matrix dimensions, before any values are passed in, the compiler could use certain optimizations that would not be possible if these static values were not static.
           </p>
 
           <p>
             A later invocation reuses the specialized compilation in the first stage. Compilation happens again only
-            when a required static specialization changes or no cached specialization exists. The idea is to <em>compile once per
-            static specialization, then execute many times with different dynamic values.</em>
+            when a required static value changes or no cached specialization exists. The idea is to <em>compile once per
+            set of static values, then execute many times with different dynamic values.</em>
           </p>
 
           <p>
             To summarize, CuTeDSL's role is to make the detailed mappings composable: once we
-            choose an operation and compatible layouts, it derives the tensor views needed to feed that operation correctly.
+            choose an operation and compatible layouts, it derives the tensor views needed to feed that operation correctly so the programmer does not need to worry about deriving addresses.
           </p>
         </section>
 
@@ -381,11 +388,11 @@ tiled_mma = cute.make_tiled_mma(mma_op)</code></pre>
           <h2>Kernel 2: Tensor Memory, Tensor Cores, and Tiling</h2>
 
           <p>
-            The code for this kernel can be found <a href="https://github.com/lukehuang33/kernel_tasks/blob/main/runpod-matmul-test/kernel_2_tensor_core.py">here:</a>
+            The code for this kernel can be found <a href="https://github.com/lukehuang33/gemm_kernel_implementation/blob/main/kernel_2_tensor_core.py">here.</a>
           </p>
 
           <p>
-            As you can see in the above chart, the naive kernel 1 is extremely slow.
+            The naive kernel 1 is extremely slow.
             This is primarily because each accumulation step is requiring 2 loads (one for matrix A and one for matrix B) from global memory, as well as one write back to global memory.
             Since loads/stores from global memory are extremely slow, we must leverage the GPU's memory hierarchy to have as many memory accesses as possible from faster kinds of memory and as few as possible from slow kinds of memory.
           </p>
@@ -413,7 +420,7 @@ tiled_mma = cute.make_tiled_mma(mma_op)</code></pre>
           <h3>Kernel 2 pseudocode</h3>
           <p>
             The pseudocode below follows the control flow of the
-            <a href="https://github.com/lukehuang33/kernel_tasks/blob/main/runpod-matmul-test/kernel_2_tensor_core.py">CuTeDSL implementation</a>.
+            <a href="https://github.com/lukehuang33/gemm_kernel_implementation/blob/main/kernel_2_tensor_core.py">CuTeDSL implementation</a>.
             Each CTA owns a <code>64 × 256</code> output tile and reduces over K in <code>64</code>-element tiles.
           </p>
 
@@ -462,21 +469,21 @@ tiled_mma = cute.make_tiled_mma(mma_op)</code></pre>
           <pre><code><span class="code-comment"># Issue the TMA loads for one A tile and one B tile.</span>
 cute.copy(
     tma_atom_a,
-    tAgA[(None, k_tile_idx)],  <span class="code-comment"># Global-memory A tile</span>
-    tAsA[(None, 0)],           <span class="code-comment"># Shared-memory destination</span>
+    tAgA[(None, k_tile_idx)],  <span class="code-comment"># Global memory A tile</span>
+    tAsA[(None, 0)],           <span class="code-comment"># Shared memory destination</span>
     tma_bar_ptr=ab_mbar_ptr,
 )
 cute.copy(
     tma_atom_b,
-    tBgB[(None, k_tile_idx)],  <span class="code-comment"># Global-memory B tile</span>
-    tBsB[(None, 0)],           <span class="code-comment"># Shared-memory destination</span>
+    tBgB[(None, k_tile_idx)],  <span class="code-comment"># Global memory B tile</span>
+    tBsB[(None, 0)],           <span class="code-comment"># Shared memory destination</span>
     tma_bar_ptr=ab_mbar_ptr,
 )</code></pre>
 
           <p>
             However, since TMA transfers are asynchronous, issuing a load does not mean that its data is immediately safe to use.
-            So, we use a memory barrier (<code>mbar</code>) so that all of the threads will wait on the barrier until the tile is completely copied into shared memory.
-            On a lower-level, we have a phase (<code>ab_mbar_ptr</code>) for the TMA operations and a phase (<code>mma_mbar_ptr</code>) for the MMA operation.
+            So, we use a memory barrier to ensure that all of the threads will wait on the barrier until the tile is completely copied into shared memory.
+            On a lower-level, we have a parity phase (<code>ab_mbar_ptr</code>) for the TMA operations and a parity phase (<code>mma_mbar_ptr</code>) for the MMA operation.
             Each thread also has its own local copy of both parity variables-- <code>tma_phase</code> and <code>mma_phase</code>.
             For the TMA phase, we have a counter that keeps track of the number of bytes that arrives, and when it reaches our expected amount, completes and releases the waiting threads.
             Then, when the threads are released, they check if their local phase matches that of the barrier, and if so, it consumes the data from the TMA or MMA.
@@ -489,10 +496,10 @@ cute.copy(
               width="1200"
               height="650"
               loading="lazy"
-              alt="A cycle in which TMA writes A and B tiles to shared memory, the TMA barrier releases the MMA consumer after all bytes arrive, and the MMA barrier makes the shared-memory stage safe to overwrite after computation finishes."
+              alt="A cycle in which TMA writes A and B tiles to shared memory, the TMA barrier releases the MMA consumer after all bytes arrive, and the MMA barrier makes the shared memory stage safe to overwrite after computation finishes."
             >
             <figcaption>
-              Figure 7. The TMA and MMA barriers independently coordinate the two handoffs required to reuse one shared-memory stage safely.
+              Figure 7. The TMA and MMA barriers independently coordinate the two handoffs required to reuse one shared memory stage safely.
             </figcaption>
           </figure>
 
@@ -523,7 +530,7 @@ cute.copy(
           <p>
             Before Blackwell, tensor-core MMA accumulators were distributed across registers owned by the threads participating in the MMA operation themselves.
             These accumulators competed for register space with other threads performing address calculations, control flow, and other general-purpose work, increasing register pressure.
-            Accumulator ownership was also tied to a warp or warp group, which made it harder for other warps to access the contents of the registers.
+            Accumulator ownership was also tied to a thread itself, which made it harder for other threads to access the contents of the a register.
             So, Blackwell introduces TMEM as a separate, CTA-scoped storage space designed specifically for these accumulators.
             The <code>tcgen05.mma</code> instruction can write results directly into TMEM.
           </p>
@@ -567,10 +574,10 @@ gC.store(registers.to(BF16))</code></pre>
 
           <p>
             At a high level, the three <code>local_tile</code> calls select the portions of <code>A</code>, <code>B</code>, and <code>C</code> owned by
-            this CTA, while <code>TiledMma</code> describes how the shared-memory operands should be presented to the tensor cores. The shared-memory
+            this CTA, while <code>TiledMma</code> describes how the   operands should be presented to the tensor cores. The shared memory
             tile has <code>BK = 64</code>, meaning that the K-dimension of the tile is 64. However, the BF16 <code>tcgen05</code> MMA consumes 32 bytes along
             <code>K</code>, or 16 BF16 values, so four MMA instructions are required to consume the complete tile. Each
-            <code>cute.gemm</code> adds one of those four block products into the same FP32 <code>C_fragment</code> in TMEM: the first MMA initializes it, and
+            <code>cute.gemm</code> adds one of those four block products into the same FP32 <code>C_fragment</code> in TMEM. The first MMA initializes it, and
             every subsequent MMA accumulates into it across the full <code>K</code> dimension. The partial result therefore remains in TMEM
             throughout the reduction instead of moving through registers after every MMA.
           </p>
@@ -580,10 +587,14 @@ gC.store(registers.to(BF16))</code></pre>
           </h3>
 
           <p>
+            Our final objective is to store the output of the tile back into global memory.
+          </p>
+
+          <p>
             Once the reduction is complete, the CTA owns a <code>64 × 256</code> FP32 output tile in TMEM. The first step is to load pieces of
             that tile into each thread's registers. At that point, every thread has a collection of FP32 output values, but it still needs
-            to write each value to the correct address in global <code>C</code>. The entire view constructed in this section exists to solve
-            that registers-to-global-memory mapping: it pairs every value in a thread's register fragment with its final destination in
+            to write each value to the correct address in global <code>C</code>. The view constructed in this section is designed to solve
+            that registers to global memory mapping, pairing every value in a thread's register fragment with its final destination in
             <code>C</code>.
           </p>
 
@@ -591,10 +602,9 @@ gC.store(registers.to(BF16))</code></pre>
             CuTe builds this destination view from the layout of the TMEM load. For each <code>64 × 64</code> piece,
             <code>Ld16x256bOp(x8)</code> determines which accumulator values land in each thread's registers. <code>partition_S</code> describes
             those values on the TMEM side, while <code>partition_D</code> applies the same ordering to <code>gC</code>. The first register value
-            therefore matches the first location in the thread's <code>gC</code> view, the second value matches the second location, and so on.
+            therefore matches the first location in the thread's global, or <code>gC</code>, view, the second value matches the second location, and so on.
             The thread can then store its complete fragment without calculating a separate global address for every register.
-            <code>flat_divide</code> simply creates the four matching <code>64 × 64</code> pieces of TMEM and <code>gC</code> before this ownership
-            pattern is applied.
+            In the code, we use the <code>flat_divide</code> function to build this view for each <code>64 × 64</code> tile.
           </p>
 
           <pre><code><span class="code-comment"># View the 64 × 256 result as four matching 64 × 64 pieces.</span>
@@ -629,12 +639,13 @@ thread_TMEM_view = thread_load.partition_S(tmem_C_subtiles)
 thread_global_C_view = thread_load.partition_D(global_C_subtiles)</code></pre>
 
           <p>
-            At the outer level, warp <code>w</code> owns rows <code>16w</code> through <code>16w + 15</code> of the current <code>64 × 64</code>
-            subtile. The per-thread mapping inside that <code>16 × 64</code> band comes from
-            <a href="https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-instructions-tcgen05-ld"><code>tcgen05.ld.16x256b</code></a>.
-            One repetition covers 16 rows and eight FP32 columns. Those 16 rows form two <code>8 × 8</code> blocks stacked vertically.
-            Within either block, the 32 warp lanes form an <code>8 × 4</code> grid, where each lane owns a vector of two adjacent columns.
-            The <code>x8</code> repetition applies this same lane pattern to eight consecutive 8-column groups, covering all 64 columns.
+            On a warp- and thread-level view, the mapping can be understood as a sequence of nested splits.
+            First, the four warps divide the current <code>64 × 64</code> subtile into four horizontal <code>16 × 64</code> bands, so warp <code>w</code> handles rows <code>16w</code> through <code>16w + 15</code>.
+            Within one warp's band, <a href="https://docs.nvidia.com/cuda/parallel-thread-execution/#tcgen05-instructions-tcgen05-ld"><code>tcgen05.ld.16x256b</code></a> processes a <code>16 × 8</code> slice at a time, which we can view as two <code>8 × 8</code> blocks stacked vertically.
+            In each block, <code>lane_id // 4</code> selects one of eight rows and <code>lane_id % 4</code> selects one of four adjacent column pairs.
+            Each lane receives its selected pair from both the upper block and the corresponding row of the lower block, giving it four FP32 values from the slice. Together, the 32 lanes cover the entire <code>16 × 8</code> slice.
+            To cover the entire subtile, the <code>x8</code> repetition shifts this same mapping across eight adjacent <code>16 × 8</code> slices, allowing each warp to cover one <code>16 × 64</code> band.
+            As a result, the four warp bands then span all <code>64 × 64</code> elements.
           </p>
 
           <figure class="article-figure">
@@ -654,7 +665,7 @@ thread_global_C_view = thread_load.partition_D(global_C_subtiles)</code></pre>
             More precisely, let <code>t</code> be the lane ID within a warp. Inside each 8-column group, lane <code>t</code> owns rows
             <code>t // 4</code> and <code>t // 4 + 8</code> of its warp band, and the adjacent column pair beginning at
             <code>2 * (t % 4)</code>. For example, lane 0 owns rows 0 and 8 with columns 0–1, while lane 6 owns rows 1 and 9 with
-            columns 4–5. The same positions repeat in each of the eight column groups. Including the warp, subtile, and CTA offsets gives:
+            columns 4–5. The same positions repeat in each of the eight column groups.
           </p>
 
           <pre><code><span class="code-comment"># Coordinates owned by one thread.</span>
@@ -668,8 +679,8 @@ global_col = block_n * 256 + cta_col
 <span class="code-comment"># row_half and pair_element are 0 or 1; column_group is 0 through 7.</span></code></pre>
 
           <p>
-            Once this view has been constructed, the registers-to-global-memory writeback follows directly. For each subtile, the thread
-            loads its 32 FP32 values from TMEM into its register fragment, converts them to BF16, and stores them through the corresponding
+            Once this view has been constructed, the registers to global memory writeback follows directly. For each subtile, the warp
+            collectively loads its subtile values from TMEM into its register fragment, converts them to BF16, and stores them through the corresponding
             <code>partition_D</code> view. Although one thread's locations are spread across the subtile, the views of all 32 threads interleave
             to reconstruct the warp's complete <code>16 × 64</code> output band.
           </p>
@@ -713,12 +724,16 @@ for each subtile:
           </h2>
 
           <p>
+            The code for this kernel can be found <a href="https://github.com/lukehuang33/gemm_kernel_implementation/blob/main/kernel_3_swizzling.py">here.</a>
+          </p>
+
+          <p>
             Note that in kernel 2, the consumer threads performing the MMA will make multiple shared memory reads simultaneously.
-            This could cause performance problems.
+            Intuitively, this could cause performance problems.
             Shared memory is divided up into 32 banks, and we could think of each bank as an independent SRAM structure.
             However, each bank only has one read port with a size of 4 bytes (note that adding more read ports would be expensive from a hardware perspective).
             As a result, we could only service one read per clock cycle.
-            When multiple read or write requests (e.g. 2 threads from the same warp) come into the same shared memory bank, a <b>bank conflict</b> occurs.
+            When multiple read or write requests (e.g. 2 threads from the same warp) come into the same shared memory bank, a <b>bank conflict</b> occurs, and we will take multiple cycles to service the reads.
             Obviously, to improve performance, we want to minimize bank conflicts as much as possible.
           </p>
 
@@ -731,12 +746,24 @@ for each subtile:
               alt="Each cell represents one 32-bit word containing two BF16 values. Thread zero reads word w0 at byte address zero and thread one reads word w32 at byte address 128. Both words map to shared-memory Bank 0, creating conflicting reads."
             >
             <figcaption>
-              Figure 11. Two threads reading different 32-bit words from the same shared-memory bank create a bank conflict. Each word contains two BF16 values.
+              Figure 11. Two threads reading different 32-bit words from the same shared memory bank create a bank conflict. Each word contains two BF16 values.
             </figcaption>
           </figure>
 
           <p>
-            Swizzling removes these conflicts by changing the physical shared-memory address associated with each logical tile coordinate. Without swizzling, the bank pattern repeats in every row of 32-bit words: word column 0 maps to Bank 0, word column 1 maps to Bank 1, and so on. Swizzling makes the bank depend on both the row and word column, shifting this pattern between rows. Hardware performs that shuffle by XORing selected bits from the row with the address bits that normally choose the bank. In the simplified example below, four words from word column 0 therefore remain in the same logical column but are physically stored in Banks 0 through 3. Each illustrated word contains two adjacent BF16 values.
+            Note that these bank conflicts happen very often in kernel 2 due to the tile shape.
+            Each shared memory row holds 64 BF16 values, which is exactly 32 four-byte words, or one complete trip through the 32 banks.
+            The next row begins exactly 32 words later, so each index in the first row will coincide with the same index in the second row.
+            Since an MMA needs the same K positions from multiple rows of A or B at once, the unswizzled layout naturally will send some concurrent fetches to the same bank. 
+          </p>
+
+          <p>
+            To avoid bank conflicts, we use <b>swizzling</b>. Swizzling removes these conflicts by changing the physical shared memory address associated with each logical tile coordinate. 
+            Without swizzling, the bank pattern repeats in every row of 32-bit words. 
+            Swizzling makes the bank depend on both the row and word column, shifting this pattern between rows. 
+            Hardware performs that shuffle by XORing selected bits from the row with the address bits that normally choose the bank. 
+            In the simplified example below, four words from word column 0 therefore remain in the same logical column but are physically stored in Banks 0 through 3. 
+            Each illustrated word contains two adjacent BF16 values.
           </p>
 
           <p>
@@ -772,6 +799,22 @@ for each subtile:
               Figure 13. Shared-memory swizzling raises the kernel's measured throughput from 155 to 285 TFLOP/s, shown on the same linear scale as cuBLAS and the B200 theoretical peak.
             </figcaption>
           </figure>
+
+          <p>
+            Part 2 of this blog will be coming soon!
+          </p>
+        </section>
+
+        <section id="acknowledgments">
+
+          <h2>
+            Acknowledgements
+          </h2>
+
+          <p>
+            I would like to thank <a href="https://han-guo.info/">Han Guo</a> for his help in the making of this blog. 
+          I would also like to thank to thank the team at Modular. The high-level structure of this blog was inspired by their <a href="https://www.modular.com/blog/matrix-multiplication-on-nvidias-blackwell-part-1-introduction">blog</a>.
+          </p>
         </section>
       </article>
     </main>
